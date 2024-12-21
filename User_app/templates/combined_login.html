@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+<!-- {% load static %} -->
+{% block content %}
+
+<div class="auth-container">
+    <h1 class="main-title">Welcome to Event Management System</h1>
+    <p class="subtitle">Your one-stop solution for managing and organizing events.</p>
+
+    <div class="login-tabs">
+        <button class="tab-btn active" onclick="switchForm('participant')">Participant Login</button>
+        <button class="tab-btn" onclick="switchForm('manager')">Event Manager Login</button>
+    </div>
+
+    <div class="login-forms">
+        <!-- Participant Login Form -->
+        <form id="participant-form" class="login-form active" method="post" action="{% url 'signin' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="participant-email">Email</label>
+                {{ participant_form.email }}
+            </div>
+            <div class="form-group">
+                <label for="participant-password">Password</label>
+                {{ participant_form.pass1 }}
+            </div>
+            <input type="hidden" name="user_type" value="participant">
+            <button type="submit" class="submit-btn">Sign In as Participant</button>
+            <div class="form-footer">
+                Don't have an account? <a href="{% url 'signup' %}" class="signup-link">Sign Up</a>
+            </div>
+        </form>
+
+        <!-- Manager Login Form -->
+        <form id="manager-form" class="login-form" method="post" action="{% url 'Dashboard_Login' %}" style="display: none;">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="manager-username">Username</label>
+                <input type="text" id="manager-username" name="username" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label for="manager-password">Password</label>
+                <input type="password" id="manager-password" name="pass1" class="form-input" required>
+            </div>
+            <button type="submit" class="submit-btn">Sign In as Manager</button>
+        </form>
+    </div>
+</div>
+
+<style>
+.auth-container {
+max-width: 480px;
+margin: 40px auto;
+padding: 30px;
+background: white;
+border-radius: 12px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.main-title {
+font-size: 24px;
+color: #2c3e50;
+text-align: center;
+margin-bottom: 10px;
+font-weight: 600;
+}
+
+.subtitle {
+text-align: center;
+color: #7f8c8d;
+margin-bottom: 30px;
+}
+
+.login-tabs {
+display: flex;
+gap: 10px;
+margin-bottom: 30px;
+border-bottom: 2px solid #eee;
+padding-bottom: 10px;
+}
+
+.tab-btn {
+flex: 1;
+padding: 12px;
+background: none;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+font-size: 16px;
+color: #7f8c8d;
+transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+color: #2ecc71;
+font-weight: 600;
+background: #f8f9fa;
+}
+
+.login-form {
+transition: all 0.3s ease;
+}
+
+.form-group {
+margin-bottom: 20px;
+}
+
+.form-group label {
+display: block;
+margin-bottom: 8px;
+color: #34495e;
+font-weight: 500;
+}
+
+.form-input,
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+width: 100%;
+padding: 12px;
+border: 2px solid #e0e0e0;
+border-radius: 6px;
+font-size: 16px;
+transition: border-color 0.3s ease;
+}
+
+.form-input:focus,
+input:focus {
+outline: none;
+border-color: #2ecc71;
+}
+
+.submit-btn {
+width: 100%;
+padding: 12px;
+background: #2ecc71;
+color: white;
+border: none;
+border-radius: 6px;
+font-size: 16px;
+cursor: pointer;
+transition: background 0.3s ease;
+}
+
+.submit-btn:hover {
+background: #27ae60;
+}
+
+.form-footer {
+text-align: center;
+margin-top: 20px;
+color: #7f8c8d;
+}
+
+.signup-link {
+color: #2ecc71;
+text-decoration: none;
+font-weight: 500;
+}
+
+.signup-link:hover {
+text-decoration: underline;
+}
+</style>
+
+<script>
+function switchForm(type) {
+const participantForm = document.getElementById('participant-form');
+const managerForm = document.getElementById('manager-form');
+const tabs = document.querySelectorAll('.tab-btn');
+
+if (type === 'participant') {
+participantForm.style.display = 'block';
+managerForm.style.display = 'none';
+tabs[0].classList.add('active');
+tabs[1].classList.remove('active');
+} else {
+participantForm.style.display = 'none';
+managerForm.style.display = 'block';
+tabs[0].classList.remove('active');
+tabs[1].classList.add('active');
+}
+}
+</script>
+
+{% endblock %}

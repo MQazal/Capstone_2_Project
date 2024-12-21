@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+.container.mt-4 {
+margin-top: 1.5rem;
+}
+.registration-form {
+padding: 20px;
+background-color: #fff;
+border-radius: 8px;
+box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.form-title {
+color: #333;
+margin-bottom: 1.5rem;
+}
+.form-group {
+margin-bottom: 1rem;
+}
+.form-group label {
+display: block;
+margin-bottom: 0.5rem;
+font-weight: 500;
+color: #333;
+}
+.form-group input,
+.form-group select {
+width: 100%;
+padding: 8px 12px;
+border: 1px solid #ddd;
+border-radius: 4px;
+font-size: 16px;
+}
+.alert {
+padding: 12px 20px;
+margin-bottom: 1rem;
+border-radius: 4px;
+}
+.alert-info {
+background-color: #e3f2fd;
+border: 1px solid #bbdefb;
+color: #1976d2;
+}
+.alert-warning {
+background-color: #fff3e0;
+border: 1px solid #ffe0b2;
+color: #f57c00;
+}
+.error-message {
+color: #dc3545;
+font-size: 14px;
+margin-top: 5px;
+}
+.payment-options {
+margin-top: 0.5rem;
+}
+.btn-primary {
+background-color: #007bff;
+color: white;
+padding: 10px 20px;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+font-size: 16px;
+}
+.btn-primary:hover {
+background-color: #0056b3;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            {% if messages %}
+                {% for message in messages %}
+                    <div id="alertMessage" class="alert alert-{{ message.tags }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="registration-form">
+                <h2 id="register-for-event" class="form-title mb-4">Register for {{ event.EventTitle }}</h2>
+
+                {% if event.EventCapacity %}
+                    <div class="capacity-info mb-3">
+                        {% if remaining_spots > 0 %}
+                            <div class="alert alert-info">
+                                {{ remaining_spots }} spots remaining out of {{ event.EventCapacity }}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                Event is full
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        {% if field.name != 'payment_method' %}
+                            <div class="form-group mb-3">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="error-message text-danger">
+                                        {{ field.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if event.EventCost != 'Free' and form.payment_method %}
+                        <div class="form-group mb-3">
+                            <label>Payment Method</label>
+                            <div class="payment-options">
+                                {{ form.payment_method }}
+                            </div>
+                            {% if form.payment_method.errors %}
+                                <div class="error-message text-danger">
+                                    {{ form.payment_method.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('registrationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect_url;
+        } else {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger';
+            alertDiv.role = 'alert';
+            alertDiv.textContent = 'Registration failed: ' + data.error;
+            
+            const form = document.getElementById('registrationForm');
+            form.parentNode.insertBefore(alertDiv, form);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger';
+        alertDiv.role = 'alert';
+        alertDiv.textContent = 'An error occurred during registration.';
+        
+        const form = document.getElementById('registrationForm');
+        form.parentNode.insertBefore(alertDiv, form);
+    });
+});
+</script>
+{% endblock %}

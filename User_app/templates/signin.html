@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="auth-container">
+    <h2 class="auth-title">Sign In</h2>
+
+    <form method="post" class="auth-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="email">Email</label>
+            {{ form.email }}
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            {{ form.pass1 }}
+        </div>
+
+        <button type="submit" class="submit-btn">Sign In</button>
+
+        <div class="auth-links">
+            Don't have an account? <a href="{% url 'signup' %}" class="signup-link">Sign Up</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.auth-container {
+max-width: 480px;
+margin: 40px auto;
+padding: 30px;
+background: white;
+border-radius: 12px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.auth-title {
+font-size: 24px;
+color: #2c3e50;
+text-align: center;
+margin-bottom: 30px;
+font-weight: 600;
+}
+
+.auth-form {
+width: 100%;
+}
+
+.form-group {
+margin-bottom: 20px;
+}
+
+.form-group label {
+display: block;
+margin-bottom: 8px;
+color: #34495e;
+font-weight: 500;
+}
+
+.form-group input {
+width: 100%;
+padding: 12px;
+border: 2px solid #e0e0e0;
+border-radius: 6px;
+font-size: 16px;
+transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+outline: none;
+border-color: #2ecc71;
+}
+
+.submit-btn {
+width: 100%;
+padding: 12px;
+background: #2ecc71;
+color: white;
+border: none;
+border-radius: 6px;
+font-size: 16px;
+cursor: pointer;
+transition: background 0.3s ease;
+margin-bottom: 20px;
+}
+
+.submit-btn:hover {
+background: #27ae60;
+}
+
+.auth-links {
+text-align: center;
+color: #7f8c8d;
+}
+
+.signup-link {
+color: #2ecc71;
+text-decoration: none;
+font-weight: 500;
+}
+
+.signup-link:hover {
+text-decoration: underline;
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Login</title>
+<link rel="stylesheet" href="{% static 'css/DashboardLogin_Style.css' %}">
+<script src="{% static 'js/LoginFailed.js' %}"></script>
+</head>
+
+<body>      
+
+  {% for message in messages %}
+  <div class="alert_message" id="alertMessage" role="alert">
+    {{ message }}
+  </div>
+  {% endfor %}
+
+<div class="Login Form">
+    <form method="post" action="" class="form">
+    {% csrf_token %}
+        <span class="heading">Sign In</span>
+        <span class="Uname">Username</span>
+        <input type="text" placeholder="Enter username" name="username" class="input" required />
+        
+        <span class="Password">Password</span>
+        <input type="password" placeholder="Enter password" name="pass1" class="input" required />
+
+        <button type="submit">Log In</button>
+    </form>
+</div>
+</div>
+</div>
+
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+background: linear-gradient(135deg, #b3cbf8, #2a5298);
+}
+
+.Login.Form {
+background: white;
+padding: 40px;
+border-radius: 10px;
+box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+width: 400px;
+}
+
+.form {
+display: flex;
+flex-direction: column;
+gap: 15px;
+}
+
+.heading {
+font-size: 28px;
+color: #1e3c72;
+font-weight: 600;
+text-align: center;
+margin-bottom: 20px;
+}
+
+.Uname, .Password {
+font-size: 16px;
+color: #555;
+font-weight: 500;
+margin-top: 10px;
+}
+
+.input {
+padding: 12px 15px;
+border: 1px solid #ddd;
+border-radius: 5px;
+font-size: 15px;
+transition: border-color 0.3s ease;
+}
+
+.input:focus {
+outline: none;
+border-color: #1e3c72;
+}
+
+button {
+background: #1e3c72;
+color: white;
+padding: 12px;
+border: none;
+border-radius: 5px;
+font-size: 16px;
+font-weight: 500;
+cursor: pointer;
+transition: background-color 0.3s ease;
+margin-top: 10px;
+}
+
+button:hover {
+background: #2a5298;
+}
+
+.alert_message {
+position: fixed;
+top: 20px;
+left: 20px;
+padding: 15px 25px;
+border-radius: 5px;
+background: #ff3333;
+color: white;
+font-size: 17px;
+animation: slideIn 0.5s ease forwards;
+box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+@keyframes slideIn {
+from {
+transform: translateX(100%);
+opacity: 0;
+}
+to {
+transform: translateX(0);
+opacity: 1;
+}
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+.Login.Form {
+width: 90%;
+padding: 30px;
+}
+
+.heading {
+font-size: 24px;
+}
+
+.input, button {
+padding: 10px;
+}
+}
+</style>
+
+</body>
+</html>

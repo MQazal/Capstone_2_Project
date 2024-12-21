@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Participant's Account</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+    <nav class="nav-content">
+        <span class="logo">EventPro</span>
+        
+        <div class="nav-links">
+            <a href="{% url 'home' %}" class="nav-link">
+                <i class="fas fa-home"></i> 🏠 Home
+            </a>
+            <button id="userProfile" class="nav-btn" onclick="toggleProfile()">
+                <i class="fas fa-user"></i> 👤 Profile
+            </button>
+            <button id="darkMode" class="nav-btn theme-toggle" onclick="toggleDarkMode()">
+                <span class="light-mode">
+                    <i class="fas fa-sun"></i> ☀️ Light
+                </span>
+                <span class="dark-mode">
+                    <i class="fas fa-moon"></i> 🌙 Dark
+                </span>
+            </button>
+            <select id="language" class="nav-btn" onchange="changeLanguage(this.value)">
+                <option value="en">🌐 English</option>
+                <option value="ar">🌐 العربية</option>
+            </select>
+            <a href="{% url 'signout' %}" class="nav-btn signout-btn">
+                <i class="fas fa-sign-out-alt"></i> 🚪 Sign Out
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <h1 class="section-title">My Registered Events</h1>
+
+        {% if has_registrations %}
+            <div class="events-grid">
+                {% for registration in registrations %}
+                    <div class="event-card">
+                        <div class="event-header">
+                            <h3 class="event-title">{{ registration.event.EventTitle }}</h3>
+                            <span class="event-badge">{{ registration.event.EventType }}</span>
+                        </div>
+                        
+                        <div class="event-info">
+                            <div class="info-row">
+                                <span class="info-label">Description:</span>
+                                <span class="info-value">{{ registration.event.EventDescription }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Date:</span>
+                                <span class="info-value">{{ registration.event.EventDate }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Time:</span>
+                                <span class="info-value">{{ registration.event.EventTime }}</span>
+                            </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Location:</span>
+                            <a href="{{registration.event.EventLocation}}" 
+                            target="_blank" 
+                            class="view-map-btn">
+                                <i class="fas fa-map-marker-alt"></i> 
+                                View on Google Maps
+                            </a>
+                        </div>
+                            {% if registration.event.EventCost != 'Free' %}
+                                <div class="info-row">
+                                    <span class="info-label">Payment Status:</span>
+                                    <span class="status-badge {{ registration.payment_status }}">
+                                        {{ registration.payment_status|title }}
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <form method="POST" action="{% url 'cancel_registration' registration.id %}" class="cancel-form">
+                            {% csrf_token %}
+                            <button type="submit" class="cancel-btn" onclick="return confirm('Are you sure you want to cancel this registration?')">
+                                <i class="fas fa-times"></i> Cancel Registration
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-events">
+                <i class="fas fa-calendar-times"></i>
+                <p>You haven't registered for any events yet.</p>
+                <a href="{% url 'home' %}" class="browse-btn">Browse Events</a>
+            </div>
+        {% endif %}
+
+        <!-- Profile Modal -->
+        <div id="profileModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Profile Information</h2>
+                <div class="profile-info">
+                    <div class="info-row">
+                        <label>Username:</label>
+                        <span>{{ user.username }}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>First Name:</label>
+                        <span>{{ user.first_name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Last Name:</label>
+                        <span>{{ user.last_name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Email:</label>
+                        <span>{{ user.email }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2024 EventPro. All rights reserved.</p>
+    </footer>
+
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+}
+
+/* Navigation Styles */
+.nav-content {
+background-color: white;
+box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+padding: 1rem 2rem;
+position: sticky;
+top: 0;
+z-index: 1000;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.logo {
+color: #2c3e50;
+text-decoration: none;
+font-size: 1.5rem;
+font-weight: bold;
+margin-right: auto;
+}
+
+.nav-links {
+display: flex;
+gap: 1rem;
+align-items: center;
+}
+
+.nav-link {
+color: #2c3e50;
+text-decoration: none;
+display: flex;
+align-items: center;
+gap: 0.5rem;
+padding: 8px 16px;
+border: 1px solid #e1e8ed;
+border-radius: 20px;
+background: #f8f9fa;
+cursor: pointer;
+font-size: 0.9rem;
+font-weight: 500;
+transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+color: #3498db;
+}
+
+.nav-btn {
+padding: 8px 16px;
+border: 1px solid #e1e8ed;
+border-radius: 20px;
+background: #f8f9fa;
+color: #2c3e50;
+cursor: pointer;
+font-size: 0.9rem;
+font-weight: 500;
+display: flex;
+align-items: center;
+gap: 0.5rem;
+text-decoration: none;
+transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+background: #e9ecef;
+color: #3498db;
+transform: translateY(-1px);
+}
+
+#language {
+padding: 8px 16px;
+border: 1px solid #e1e8ed;
+border-radius: 20px;
+background: #f8f9fa;
+color: #2c3e50;
+cursor: pointer;
+font-size: 0.9rem;
+font-weight: 500;
+appearance: none;
+-webkit-appearance: none;
+padding-right: 30px;
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232c3e50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+background-repeat: no-repeat;
+background-position: right 10px center;
+}
+
+#language:hover{
+color: #3498db;
+}
+
+.signout-btn {
+background: #fff1f0 !important;
+color: #e74c3c !important;
+border-color: #ffa39e !important;
+}
+
+.signout-btn:hover {
+background: #fff1f0 !important;
+color: #c0392b !important;
+border-color: #ff7875 !important;
+}
+
+/* Theme Toggle Styles */
+.theme-toggle {
+position: relative;
+padding: 0.5rem 1rem;
+background: #f8f9fa;
+border: 1px solid #e1e8ed;
+min-width: 100px;
+justify-content: center;
+}
+
+.theme-toggle .light-mode,
+.theme-toggle .dark-mode {
+display: flex;
+align-items: center;
+gap: 0.5rem;
+font-weight: 500;
+}
+
+.theme-toggle .fa-sun {
+color: #f39c12;
+}
+
+.theme-toggle .fa-moon {
+color: #34495e;
+}
+
+body:not(.dark-mode) .theme-toggle .dark-mode,
+body.dark-mode .theme-toggle .light-mode {
+display: none;
+}
+
+/* Main Content Styles */
+.main-content {
+flex: 1;
+padding: 2rem;
+max-width: 1200px;
+margin: 0 auto;
+width: 100%;
+}
+
+.section-title {
+color: #2c3e50;
+margin-bottom: 2rem;
+font-size: 2rem;
+}
+
+/* Event Card Styles */
+.events-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+gap: 1.5rem;
+}
+
+.event-card {
+background: white;
+border-radius: 12px;
+padding: 1.5rem;
+box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+transition: transform 0.2s, box-shadow 0.2s;
+border: 1px solid #e1e8ed;
+position: relative;
+overflow: hidden;
+}
+
+.event-card:hover {
+transform: translateY(-5px);
+box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+.event-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 1rem;
+padding-bottom: 1rem;
+border-bottom: 1px solid #e1e8ed;
+}
+
+.event-title {
+color: #2c3e50;
+margin: 0;
+font-size: 1.3rem;
+}
+
+.event-badge {
+display: inline-block;
+padding: 0.4rem 1rem;
+background: #3498db;
+color: white;
+border-radius: 20px;
+font-size: 0.9rem;
+font-weight: 500;
+}
+
+.event-info {
+margin: 1rem 0;
+}
+
+.info-row {
+display: flex;
+align-items: center;
+margin: 0.8rem 0;
+padding: 0.5rem;
+border-radius: 6px;
+background: rgba(241, 242, 246, 0.3);
+}
+
+.info-label {
+width: 120px;
+font-weight: 600;
+color: #7f8c8d;
+}
+
+.map-link {
+color: #3498db;
+text-decoration: none;
+display: flex;
+align-items: center;
+gap: 0.5rem;
+}
+
+.map-link:hover {
+text-decoration: underline;
+}
+
+.status-badge {
+padding: 0.3rem 0.8rem;
+border-radius: 15px;
+font-size: 0.9rem;
+font-weight: 500;
+background: #f1c40f;
+color: white;
+}
+
+.status-badge.completed {
+background: #2ecc71;
+}
+
+.view-map-btn {
+display: inline-flex;
+align-items: center;
+gap: 0.5rem;
+padding: 6px 12px;
+background-color: #f8f9fa;
+color: #4285f4;
+border: 1px solid #e1e8ed;
+border-radius: 20px;
+font-size: 0.9rem;
+text-decoration: none;
+transition: all 0.2s ease;
+}
+
+.view-map-btn:hover {
+background-color: #4285f4;
+color: white;
+border-color: #4285f4;
+}
+
+.view-map-btn i {
+font-size: 1rem;
+}
+
+/* Dark mode support */
+body.dark-mode .view-map-btn {
+background-color: #1a1a2e;
+border-color: #2c3e50;
+color: #4285f4;
+}
+
+body.dark-mode .view-map-btn:hover {
+background-color: #4285f4;
+color: white;
+border-color: #4285f4;
+}
+
+.cancel-btn {
+width: 100%;
+padding: 0.8rem;
+background: #e74c3c;
+color: white;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+transition: background-color 0.3s;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 0.5rem;
+margin-top: 1rem;
+font-size: 16px;
+}
+
+.cancel-btn:hover {
+background: #c0392b;
+}
+
+/* No Events Styles */
+.no-events {
+text-align: center;
+padding: 3rem;
+background: white;
+border-radius: 12px;
+box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.no-events i {
+font-size: 3rem;
+color: #95a5a6;
+margin-bottom: 1rem;
+}
+
+.browse-btn {
+display: inline-block;
+padding: 0.8rem 1.5rem;
+background: #3498db;
+color: white;
+text-decoration: none;
+border-radius: 4px;
+margin-top: 1rem;
+transition: background-color 0.3s;
+}
+
+.browse-btn:hover {
+background: #2980b9;
+}
+
+/* Modal Styles */
+.modal {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0,0,0,0.5);
+z-index: 1001;
+}
+
+.modal-content {
+background: white;
+margin: 15% auto;
+padding: 2rem;
+border-radius: 12px;
+width: 90%;
+max-width: 500px;
+position: relative;
+box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.close {
+position: absolute;
+right: 1rem;
+top: 1rem;
+font-size: 1.5rem;
+cursor: pointer;
+color: #95a5a6;
+transition: color 0.3s;
+}
+
+.close:hover {
+color: #2c3e50;
+}
+
+.profile-info {
+margin-top: 1.5rem;
+}
+
+.profile-info .info-row {
+margin: 1rem 0;
+background: #f8f9fa;
+}
+
+.profile-info label {
+font-weight: 600;
+width: 120px;
+color: #2c3e50;
+}
+
+/* Footer Styles */
+footer {
+background-color: #2c3e50;
+color: white;
+text-align: center;
+padding: 1rem;
+margin-top: auto;
+}
+
+/* RTL Support */
+[dir="rtl"] .nav-links {
+flex-direction: row-reverse;
+}
+
+[dir="rtl"] .info-label {
+margin-left: 1rem;
+margin-right: 0;
+}
+
+[dir="rtl"] .event-card {
+text-align: right;
+}
+
+[dir="rtl"] .event-header {
+flex-direction: row-reverse;
+}
+
+[dir="rtl"] .modal-content {
+text-align: right;
+}
+
+[dir="rtl"] .close {
+right: auto;
+left: 1rem;
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+background: #1a1a2e;
+color: #fff;
+}
+
+body.dark-mode .nav-content {
+background: #16213e;
+}
+
+body.dark-mode .logo,
+body.dark-mode .nav-link {
+color: white;
+}
+
+body.dark-mode .event-card,
+body.dark-mode .no-events,
+body.dark-mode .modal-content {
+background: #16213e;
+border-color: #2c3e50;
+}
+
+body.dark-mode .event-title,
+body.dark-mode .info-label {
+color: #fff;
+}
+
+body.dark-mode .event-header {
+border-color: #2c3e50;
+}
+
+body.dark-mode .info-row {
+background: rgba(44, 62, 80, 0.3);
+}
+
+body.dark-mode .profile-info .info-row {
+background: #1a1a2e;
+}
+
+body.dark-mode .nav-btn {
+background: #1a1a2e;
+border-color: #2c3e50;
+color: #fff;
+}
+
+body.dark-mode .nav-btn:hover {
+background: #16213e;
+}
+
+body.dark-mode #language {
+background-color: #1a1a2e;
+border-color: #2c3e50;
+color: #fff;
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+body.dark-mode .signout-btn {
+background: #2c1f1e !important;
+color: #ff7875 !important;
+border-color: #431e1c !important;
+}
+
+body.dark-mode .info-row:first-child {
+background: #16213e;
+border-left-color: #3498db;
+}
+
+body.dark-mode .info-row:first-child .info-value {
+color: #ecf0f1;
+}
+
+@media (max-width: 768px) {
+.nav-content {
+flex-direction: column;
+padding: 1rem;
+}
+
+.nav-links {
+flex-wrap: wrap;
+justify-content: center;
+gap: 0.5rem;
+margin-top: 1rem;
+}
+
+.events-grid {
+grid-template-columns: 1fr;
+}
+
+.modal-content {
+margin: 5% auto;
+width: 95%;
+}
+}
+</style>
+        
+
+<script>
+    // Console log for debugging
+    console.log('Script initializing...');
+    
+    // Wait for DOM to be loaded before initializing functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded');
+    
+        // Initialize theme based on stored preference
+        initializeTheme();
+    
+        // Initialize language based on stored preference
+        initializeLanguage();
+    
+        // Initialize modal functionality
+        initializeModal();
+    
+        // Initialize alerts
+        initializeAlerts();
+    });
+    
+    // Theme functionality
+    function initializeTheme() {
+        try {
+            const darkMode = localStorage.getItem('darkMode');
+            if (darkMode === 'enabled') {
+                document.body.classList.add('dark-mode');
+            }
+        } catch (error) {
+            console.error('Error initializing theme:', error);
+        }
+    }
+    
+    function toggleDarkMode() {
+        try {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', body.classList.contains('dark-mode') ? 'enabled' : 'disabled');
+        } catch (error) {
+            console.error('Error toggling dark mode:', error);
+        }
+    }
+    
+    // Language functionality
+    function initializeLanguage() {
+        try {
+            const savedLang = localStorage.getItem('language') || 'en';
+            const langSelect = document.getElementById('language');
+            if (langSelect) {
+                langSelect.value = savedLang;
+                changeLanguage(savedLang);
+            }
+        } catch (error) {
+            console.error('Error initializing language:', error);
+        }
+    }
+    
+    function changeLanguage(lang) {
+        try {
+            localStorage.setItem('language', lang);
+            document.documentElement.lang = lang;
+            document.body.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    
+            const translations = {
+                en: {
+                    home: '🏠 Home',
+                    profile: '👤 Profile',
+                    lightMode: '☀️ Light',
+                    darkMode: '🌙 Dark',
+                    signOut: '🚪 Sign Out',
+                    myEvents: 'My Registered Events',
+                    noEvents: "You haven't registered for any events yet",
+                    browseEvents: 'Browse Events'
+                },
+                ar: {
+                    home: '🏠 الرئيسية',
+                    profile: '👤 الملف الشخصي',
+                    lightMode: '☀️ نهاري',
+                    darkMode: '🌙 ليلي',
+                    signOut: '🚪 تسجيل الخروج',
+                    myEvents: 'فعالياتي المسجلة',
+                    noEvents: 'لم تقم بالتسجيل في أي فعاليات بعد',
+                    browseEvents: 'تصفح الفعاليات'
+                }
+            };
+    
+            // Update text content
+            const elements = {
+                home: document.querySelector('.nav-link'),
+                profile: document.getElementById('userProfile'),
+                lightMode: document.querySelector('.light-mode'),
+                darkMode: document.querySelector('.dark-mode'),
+                signOut: document.querySelector('.signout-btn'),
+                sectionTitle: document.querySelector('.section-title'),
+                noEventsText: document.querySelector('.no-events p'),
+                browseBtn: document.querySelector('.browse-btn')
+            };
+    
+            const currentLang = translations[lang];
+            Object.keys(elements).forEach(key => {
+                if (elements[key] && currentLang[key]) {
+                    elements[key].textContent = currentLang[key];
+                }
+            });
+        } catch (error) {
+            console.error('Error changing language:', error);
+        }
+    }
+    
+    // Modal functionality
+    function initializeModal() {
+        try {
+            const modal = document.getElementById('profileModal');
+            const closeBtn = document.querySelector('.close');
+    
+            if (modal && closeBtn) {
+                closeBtn.onclick = function() {
+                    modal.style.display = "none";
+                }
+    
+                window.onclick = function(event) {
+                    if (event.target === modal) {
+                        modal.style.display = "none";
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error initializing modal:', error);
+        }
+    }
+    
+    function toggleProfile() {
+        try {
+            const modal = document.getElementById('profileModal');
+            if (modal) {
+                modal.style.display = "block";
+            }
+        } catch (error) {
+            console.error('Error toggling profile:', error);
+        }
+    }
+    
+    // Alert functionality
+    function initializeAlerts() {
+        try {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 5000);
+            });
+        } catch (error) {
+            console.error('Error initializing alerts:', error);
+        }
+    }
+    
+    // Registration cancellation confirmation
+    function confirmCancellation(event) {
+        if (!confirm('Are you sure you want to cancel this registration?')) {
+            event.preventDefault();
+            return false;
+        }
+        return true;
+    }
+</script>
+
+</body>
+</html>

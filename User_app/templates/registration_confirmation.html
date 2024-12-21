@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+.confirmation-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+}
+
+.confirmation-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.confirmation-title {
+    color: #2c3e50;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.event-details {
+    background-color: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.details-title {
+    color: #2c3e50;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #3498db;
+}
+
+.detail-row {
+    display: flex;
+    margin-bottom: 15px;
+    align-items: baseline;
+}
+
+.detail-label {
+    font-weight: 600;
+    width: 150px;
+    color: #34495e;
+}
+
+.detail-value {
+    color: #2c3e50;
+}
+
+.location-value {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.location-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: #fff;
+    color: #4285f4;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border: 1px solid #e0e0e0;
+    width: fit-content;
+}
+
+.location-link i {
+    color: #4285f4;
+    font-size: 14px;
+}
+
+.location-link:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-download {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-back {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .detail-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .detail-label {
+        width: 100%;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirmation-container">
+    <div class="confirmation-header">
+        <h1 class="confirmation-title">Registration Confirmed!</h1>
+        <div class="success-message">
+            You have successfully registered for {{ event.EventTitle }}
+        </div>
+    </div>
+
+    <div class="event-details">
+        <h2 class="details-title">Event Details</h2>
+        
+        <div class="detail-row">
+            <span class="detail-label">Date:</span>
+            <span class="detail-value">{{ event.EventDate }}</span>
+        </div>
+        
+        <div class="detail-row">
+            <span class="detail-label">Time:</span>
+            <span class="detail-value">{{ event.EventTime }}</span>
+        </div>
+        
+        <div class="detail-row">
+            <span class="detail-label">Location:</span>
+            <div class="location-value">
+                {% if event.EventLocation %}
+                    <a href="{{ event.EventLocation }}" target="_blank" class="location-link">
+                        <i class="fas fa-map-marker-alt"></i>
+                        View on Google Maps
+                    </a>
+                {% else %}
+                    <span class="value">No location specified</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if event.EventCost != 'Free' %}
+        <div class="detail-row">
+            <span class="detail-label">Payment Status:</span>
+            <span class="detail-value">{{ registration.payment_status }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="event-details">
+        <h2 class="details-title">Participant Information</h2>
+        {% for field in event.form_fields.all %}
+            <div class="detail-row">
+                <span class="detail-label">{{ field.field_name }}:</span>
+                <span class="detail-value">
+                    {{ registration.registration_data|get_dict_value:field }}
+                </span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="action-buttons">
+        <button onclick="generatePDF()" class="btn btn-download">
+            <i class="fas fa-download"></i> Download Registration PDF
+        </button>
+        <a href="{% url 'home' %}" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i> Back to Events
+        </a>
+    </div>
+</div>
+
+<!-- Hidden content for PDF -->
+<div id="pdfContent" style="display: none;">
+    <div style="padding: 40px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; background: white;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: #2c3e50; font-size: 24px; margin: 0 0 10px 0;">Registration Confirmation</h2>
+            <h3 style="color: #34495e; font-size: 20px; margin: 0;">{{ event.EventTitle }}</h3>
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <h4 style="color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 8px; margin: 0 0 20px 0;">Event Details</h4>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 8px 0; color: #333; width: 180px;"><strong>Date:</strong></td><td style="padding: 8px 0; color: #2c3e50;">{{ event.EventDate }}</td></tr>
+                <tr><td style="padding: 8px 0; color: #333;"><strong>Time:</strong></td><td style="padding: 8px 0; color: #2c3e50;">{{ event.EventTime }}</td></tr>
+                <tr><td style="padding: 8px 0; color: #333;"><strong>Location:</strong></td><td style="padding: 8px 0; color: #2c3e50;">{{ event.EventLocation }}</td></tr>
+                <tr><td style="padding: 8px 0; color: #333;"><strong>Registration ID:</strong></td><td style="padding: 8px 0; color: #2c3e50;">{{ registration.id }}</td></tr>
+                <tr><td style="padding: 8px 0; color: #333;"><strong>Registration Date:</strong></td><td style="padding: 8px 0; color: #2c3e50;">{{ registration.created_at|date:"F d, Y" }}</td></tr>
+                {% if event.EventCost != 'Free' %}
+                    <tr><td style="padding: 8px 0; color: #333;"><strong>Cost:</strong></td><td style="padding: 8px 0; color: #2c3e50;">{{ event.EventCost }}</td></tr>
+                    <tr><td style="padding: 8px 0; color: #333;"><strong>Payment Status:</strong></td><td style="padding: 8px 0; color: #2c3e50;">{{ registration.payment_status }}</td></tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <div>
+            <h4 style="color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 8px; margin: 0 0 20px 0;">Participant Information</h4>
+            <table style="width: 100%; border-collapse: collapse;">
+                {% for field in event.form_fields.all %}
+                    <tr>
+                        <td style="padding: 8px 0; color: #333; width: 180px;">
+                            <strong>{{ field.field_name }}:</strong>
+                        </td>
+                        <td style="padding: 8px 0; color: #2c3e50;">
+                            {{ registration.registration_data|get_dict_value:field }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #7f8c8d; font-size: 12px;">
+            <div>Generated on {{ date }}</div>
+            <div>EventPro Registration System</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+function generatePDF() {
+    const element = document.getElementById('pdfContent');
+    element.style.display = 'block';
+    
+    html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: true,
+        letterRendering: 1,
+        backgroundColor: '#ffffff'
+    }).then(canvas => {
+        element.style.display = 'none';
+        
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jspdf.jsPDF();
+        
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`event_registration_{{ registration.id }}.pdf`);
+    });
+}
+</script>
+{% endblock %}

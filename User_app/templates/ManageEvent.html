@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Events</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="main-title">List of Created Events</h1>
+
+        <div class="event-list">
+            {% for item in all %}
+            <div class="event-card">
+                <h2 class="event-title">{{ item.EventTitle }}</h2>
+
+                <div class="event-details">
+                    <div class="detail-item">
+                        <span class="label">Event ID:</span>
+                        <span class="value">{{ item.EventID }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Description:</span>
+                        <span class="value">{{ item.EventDescription }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Date:</span>
+                        <span class="value">{{ item.EventDate }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Time:</span>
+                        <span class="value">{{ item.EventTime }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Cost:</span>
+                        <span class="value">{{ item.EventCost }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Capacity:</span>
+                        <span class="value">{% if item.EventCapacity %}{{ item.EventCapacity }}{% else %}Unlimited{% endif %}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Location:</span>
+                        <div class="location-value">
+                            {% if item.EventLocation %}
+                                <a href="{{ item.EventLocation }}" target="_blank" class="location-link">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    View on Google Maps
+                                </a>
+                            {% else %}
+                                <span class="value">No location specified</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <form method="post" action="{% url 'Delete_Event' item.EventID %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-delete" onclick="return confirm('Are you sure you want to delete this event?')">Delete</button>
+                    </form>
+                    <a href="{% url 'Update_Event' item.EventID %}" class="btn btn-update">Update</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+<style>
+body {
+font-family: Arial, sans-serif;
+background-color: #dee9f3;
+margin: 0;
+padding: 0;
+}
+
+.container {
+max-width: 1200px;
+margin: 0 auto;
+padding: 20px;
+}
+
+.main-title {
+font-family: system-ui;
+color: #2c0334c7;
+text-align: center;
+font-family: monospace;
+font-size: 2rem;
+}
+
+.event-list {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+gap: 20px;
+padding: 20px;
+}
+
+.event-card {
+background: linear-gradient(135deg, #f1f2f4, #9eb4dc);
+border-radius: 12px;
+padding: 20px;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+display: flex;
+flex-direction: column;
+}
+
+.event-title {
+font-size: 1.5rem;
+margin: 0 0 15px 0;
+color: #333;
+}
+
+.event-details {
+flex-grow: 1;
+}
+
+.detail-item {
+margin-bottom: 10px;
+display: grid;
+grid-template-columns: 80px 1fr;
+gap: 25px;
+}
+
+.label {
+font-weight: 600;
+color: #666;
+}
+
+.value {
+color: #333;
+word-break: break-word;
+min-height: 20px;
+}
+
+.location-value {
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.location-link {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+padding: 8px 12px;
+background-color: #ffffff;
+color: #4285f4;
+text-decoration: none;
+border-radius: 6px;
+font-size: 16px;
+transition: all 0.3s ease;
+max-width: fit-content;
+}
+
+.location-link:hover {
+background-color: #f8f9fa;
+transform: translateY(-1px);
+}
+
+.action-buttons {
+display: flex;
+gap: 10px;
+margin-top: 15px;
+justify-content: flex-end;
+}
+
+.btn {
+padding: 8px 16px;
+border-radius: 6px;
+border: none;
+cursor: pointer;
+font-weight: 500;
+transition: opacity 0.2s;
+}
+
+.btn:hover {
+opacity: 0.9;
+}
+
+.btn-delete {
+background-color: #dc3545;
+color: white;
+font-size: 1rem;
+font-family: monospace;
+}
+
+.btn-update {
+display: inline-block;
+margin: 10px auto;
+padding: 10px 20px;
+font-size: 1rem;
+background-color: #4CAF50;
+color: white;
+text-decoration: none;
+border-radius: 5px;
+font-family: monospace;
+}
+
+@media (max-width: 768px) {
+.event-list {
+grid-template-columns: 1fr;
+}
+
+.detail-item {
+grid-template-columns: 1fr;
+}
+
+.label {
+margin-bottom: 4px;
+}
+
+.location-link {
+width: 100%;
+justify-content: center;
+}
+}
+</style>
+
+</body>
+</html>

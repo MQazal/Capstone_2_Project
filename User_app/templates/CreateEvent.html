@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Event</title>
+    <link rel="stylesheet" href="{% static 'css/CreateEvent_Style.css' %}">
+    <script src="{% static 'js/AlertMessage.js' %}"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% for message in messages %}
+    <div id="alertMessage" class="alert_message" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+
+    <div id="events-wrapper" class="section">
+        <h1>Create a New Event</h1>
+
+        <form method="POST" class="event-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ form.EventType.id_for_label }}">Event Type:</label>
+                {{ form.EventType }}
+                {% if form.EventType.errors %}
+                <div class="error-message">
+                    {{ form.EventType.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.EventTitle.id_for_label }}">Event Title:</label>
+                {{ form.EventTitle }}
+                {% if form.EventTitle.errors %}
+                <div class="error-message">
+                    {{ form.EventTitle.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.EventDescription.id_for_label }}">Event Description:</label>
+                {{ form.EventDescription }}
+                {% if form.EventDescription.errors %}
+                <div class="error-message">
+                    {{ form.EventDescription.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.EventDate.id_for_label }}">Event Date:</label>
+                <input type="date" name="EventDate" id="{{ form.EventDate.id_for_label }}" class="form-control" required>
+                {% if form.EventDate.errors %}
+                <div class="error-message">
+                    {{ form.EventDate.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.EventTime.id_for_label }}">Event Time:</label>
+                <input type="time" name="EventTime" id="{{ form.EventTime.id_for_label }}" class="form-control" required>
+                {% if form.EventTime.errors %}
+                <div class="error-message">
+                    {{ form.EventTime.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.EventCost.id_for_label }}">Event Cost:</label>
+                {{ form.EventCost }}
+                <small class="helper-text">Enter 'Free' or amount in SAR</small>
+                {% if form.EventCost.errors %}
+                <div class="error-message">
+                    {{ form.EventCost.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.EventCapacity.id_for_label }}">Event Capacity:</label>
+                {{ form.EventCapacity }}
+                <small class="helper-text">Leave blank for unlimited capacity</small>
+                {% if form.EventCapacity.errors %}
+                <div class="error-message">
+                    {{ form.EventCapacity.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.EventLocation.id_for_label }}">Event Location:</label>
+                <div class="location-input-wrapper">
+                    {{ form.EventLocation }}
+                    <small class="helper-text">
+                        <i class="fas fa-info-circle"></i>
+                        Click "Share" in Google Maps and paste the link here
+                    </small>
+                    <div id="locationPreview" class="location-preview"></div>
+                </div>
+            </div>
+
+            <div class="button-wrapper">
+                <button type="submit" class="submit-btn">Create Event</button>
+            </div>
+        </form>
+    </div>
+
+<style>
+.section {
+max-width: 800px;
+margin: 2rem auto;
+padding: 2rem;
+background: #f8f9fa;
+border-radius: 10px;
+box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+}
+
+h1 {
+color: #2c3e50;
+margin-bottom: 2rem;
+text-align: center;
+}
+
+.form-group {
+margin-bottom: 1.5rem;
+position: relative;
+}
+
+.form-group label {
+display: block;
+margin-bottom: 0.5rem;
+color: #34495e;
+font-weight: 500;
+}
+
+.form-control,
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+textarea,
+select {
+width: 100%;
+padding: 0.75rem;
+border: 2px solid #e2e8f0;
+border-radius: 6px;
+background-color: white;
+transition: border-color 0.3s ease;
+}
+
+.form-control:focus,
+input:focus,
+textarea:focus,
+select:focus {
+outline: none;
+border-color: #4299e1;
+box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+textarea {
+min-height: 120px;
+resize: vertical;
+}
+
+.helper-text {
+display: block;
+margin-top: 0.25rem;
+font-size: 0.875rem;
+color: #718096;
+}
+
+.error-message {
+color: #e53e3e;
+font-size: 0.875rem;
+margin-top: 0.25rem;
+}
+
+.location-input-wrapper {
+position: relative;
+}
+
+.location-preview {
+margin-top: 10px;
+}
+
+.location-link {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+padding: 8px 12px;
+background-color: #f8fafc;
+color: #4285f4;
+text-decoration: none;
+border-radius: 6px;
+font-size: 18px;
+transition: all 0.3s ease;
+}
+
+.location-link:hover {
+background-color: #edf2f7;
+transform: translateY(-1px);
+}
+
+.button-wrapper {
+display: flex;
+justify-content: center;
+margin-top: 2rem;
+}
+
+.submit-btn {
+background-color: #4299e1;
+color: white;
+padding: 0.75rem 2rem;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+font-size: 1.125rem;
+font-weight: 500;
+transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+background-color: #3182ce;
+transform: translateY(-1px);
+}
+
+.alert_message {
+padding: 1rem;
+margin-bottom: 1rem;
+border-radius: 6px;
+background-color: #fed7d7;
+color: #c53030;
+border: 1px solid #feb2b2;
+}
+
+@media (max-width: 768px) {
+.section {
+margin: 1rem;
+padding: 1.5rem;
+}
+
+.submit-btn {
+width: 100%;
+}
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+const locationInput = document.getElementById('{{ form.EventLocation.id_for_label }}');
+const locationPreview = document.getElementById('locationPreview');
+
+locationInput.addEventListener('input', function() {
+const url = this.value.trim();
+if (url.includes('google.com/maps')) {
+fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(url)}`)
+.then(response => response.json())
+.then(data => {
+if (data.results && data.results[0]) {
+const address = data.results[0].formatted_address;
+locationPreview.innerHTML = `
+<a href="${url}" target="_blank" class="location-link">
+<i class="fas fa-map-marker-alt"></i>
+<span>${address}</span>
+</a>
+`;
+}
+})
+.catch(() => {
+locationPreview.innerHTML = `
+<a href="${url}" target="_blank" class="location-link">
+<i class="fas fa-map-marker-alt"></i>
+View on Google Maps
+</a>
+`;
+});
+} else {
+locationPreview.innerHTML = '';
+}
+});
+});
+</script>
+
+
+</body>
+</html>

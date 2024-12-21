@@ -1,0 +1,271 @@
+{% extends 'base.html' %} 
+{% block content %}
+
+<div class="main-container">
+    <div class="container">
+        <div class="col-md-8 offset-md-2">
+            <!-- Header -->
+            <div class="header-section">
+                <h2>Form Manager - {{ event.EventTitle }}</h2>
+                <a href="{% url 'Dashboard_Home' %}" class="dashboard-btn">Back to Dashboard</a>
+            </div>
+
+            <!-- Basic Fields Section -->
+            <div class="form-section">
+                <h5 class="section-title">Basic Fields (Always Included)</h5>
+                <div class="fields-list">
+                    <div class="field-item">
+                        <span class="field-name">Full Name</span>
+                        <span class="required-badge">Required</span>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-name">Gender</span>
+                        <span class="required-badge">Required</span>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-name">Email</span>
+                        <span class="required-badge">Required</span>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-name">Phone Number</span>
+                        <span class="required-badge">Required</span>
+                    </div>
+                    {% if event.EventCost != 'Free' %}
+                    <div class="field-item">
+                        <span class="field-name">Payment Method</span>
+                        <span class="required-badge">Required</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Custom Fields Section -->
+            <div class="form-section">
+                <h5 class="section-title">Custom Fields</h5>
+                <div class="add-field-form">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_field">
+                        <div class="input-group">
+                            <input type="text" name="field_name" class="form-input" placeholder="Field Name" required>
+                            <select name="field_type" class="form-select" required>
+                                <option value="text">Text Input</option>
+                                <option value="email">Email</option>
+                                <option value="number">Number</option>
+                                <option value="select">Dropdown</option>
+                            </select>
+                            <div class="form-check">
+                                <input type="checkbox" name="is_required" class="form-check-input" id="isRequired" checked>
+                                <label class="form-check-label" for="isRequired">Required</label>
+                            </div>
+                            <button type="submit" class="add-field-btn">Add Field</button>
+                        </div>
+                        <div class="choices-row" style="display: none;">
+                            <input type="text" name="choices" class="form-input choices-input" placeholder="Choices (comma-separated)">
+                        </div>
+                    </form>
+                </div>
+
+                <div class="custom-fields-list">
+                    {% for field in form_fields %}
+                    <div class="field-item">
+                        <div class="field-info">
+                            <span class="field-name">{{ field.field_name }}</span>
+                            <span class="field-type-badge">{{ field.field_type }}</span>
+                            {% if field.is_required %}
+                            <span class="required-badge">Required</span>
+                            {% endif %}
+                        </div>
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_field">
+                            <input type="hidden" name="field_id" value="{{ field.id }}">
+                            <button type="submit" class="delete-btn">Delete</button>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <div class="no-fields-message">No custom fields added yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Save Configuration Button -->
+            <div class="save-configuration">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_form">
+                    <button type="submit" class="save-config-btn">Save Form Configuration</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.main-container {
+background-color: #f8f9fa;
+min-height: 100vh;
+padding: 30px 0;
+}
+
+.header-section {
+margin-bottom: 30px;
+}
+
+.header-section h2 {
+color: #333;
+margin-bottom: 10px;
+}
+
+.dashboard-btn {
+background-color: #007bff;
+color: white;
+padding: 8px 16px;
+border-radius: 4px;
+text-decoration: none;
+display: inline-block;
+transition: background-color 0.3s;
+}
+
+.dashboard-btn:hover {
+background-color: #0056b3;
+color: white;
+text-decoration: none;
+}
+
+.form-section {
+background: white;
+border-radius: 8px;
+padding: 20px;
+margin-bottom: 20px;
+box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.section-title {
+font-size: 16px;
+font-weight: bold;
+margin-bottom: 20px;
+color: #333;
+}
+
+.field-item {
+padding: 12px;
+border-bottom: 1px solid #eee;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+
+.field-name {
+font-size: 14px;
+color: #333;
+}
+
+.required-badge {
+background-color: #dc3545;
+color: white;
+padding: 3px 8px;
+border-radius: 4px;
+font-size: 12px;
+margin-left: 8px;
+}
+
+.field-type-badge {
+background-color: #6c757d;
+color: white;
+padding: 3px 8px;
+border-radius: 4px;
+font-size: 12px;
+margin-left: 8px;
+}
+
+.input-group {
+display: flex;
+gap: 10px;
+align-items: center;
+}
+
+.form-input {
+padding: 8px;
+border: 1px solid #ddd;
+border-radius: 4px;
+flex: 1;
+}
+
+.form-select {
+padding: 8px;
+border: 1px solid #ddd;
+border-radius: 4px;
+width: 120px;
+}
+
+.choices-input {
+width: 100%;
+padding: 10px;
+margin-top: 10px;
+font-size: 14px;
+height: 40px;
+}
+
+.form-check {
+margin: 0 10px;
+}
+
+.add-field-btn {
+padding: 8px 16px;
+background-color: #28a745;
+color: white;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+}
+
+.delete-btn {
+padding: 4px 12px;
+background-color: #dc3545;
+color: white;
+border: none;
+border-radius: 4px;
+font-size: 12px;
+cursor: pointer;
+}
+
+.no-fields-message {
+color: #666;
+text-align: center;
+padding: 20px;
+}
+
+.save-configuration {
+text-align: center;
+margin-top: 20px;
+}
+
+.save-config-btn {
+background-color: #28a745;
+color: white;
+padding: 12px 30px;
+border: none;
+border-radius: 4px;
+font-size: 16px;
+cursor: pointer;
+transition: background-color 0.3s;
+}
+
+.save-config-btn:hover {
+background-color: #218838;
+}
+</style>
+
+<script>
+    document.querySelector('select[name="field_type"]').addEventListener('change', function() {
+        const choicesRow = document.querySelector('.choices-row');
+        if (this.value === 'select') {
+            choicesRow.style.display = 'block';
+        } else {
+            choicesRow.style.display = 'none';
+        }
+    });
+</script>
+    
+{% endblock %}
