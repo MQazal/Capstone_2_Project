@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Fields Database</title>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">EventPro</div>
+    </header>
+
+    <div class="dashboard-container">
+        <h2 class="page-title">Form Fields Database</h2>
+
+        <div class="table-container">
+            <table class="form-field-table">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Field Name</th>
+                        <th>Field Type</th>
+                        <th>Required</th>
+                        <th>Choices</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for field in form_fields %}
+                    {% if field.event.form_configured %}
+                    <tr>
+                        <td>{{ field.event.EventTitle }}</td>
+                        <td>{{ field.field_name }}</td>
+                        <td><span class="badge field-type">{{ field.field_type }}</span></td>
+                        <td>
+                            <span class="badge {% if field.is_required %}required-yes{% else %}required-no{% endif %}">
+                                {{ field.is_required|yesno:"Yes,No" }}
+                            </span>
+                        </td>
+                        <td>{{ field.choices|default:"-" }}</td>
+                    </tr>
+                    {% endif %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <div class="empty-message">
+                                <p>No form fields have been configured yet</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">© 2025 EventPro. All rights reserved.</div>
+    </footer>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.header {
+    background: white;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.logo {
+    color: #2d3748;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.dashboard-container {
+    flex: 1;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 2rem;
+}
+
+.table-container {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.form-field-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.form-field-table th {
+    background: #f7fafc;
+    padding: 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #4a5568;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.form-field-table td {
+    padding: 1rem;
+    color: #4a5568;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+.form-field-table tr:hover {
+    background: #f7fafc;
+    transition: background-color 0.2s;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.required-yes {
+    background: #f0fff4;
+    color: #38a169;
+}
+
+.required-no {
+    background: #fff5f5;
+    color: #e53e3e;
+}
+
+.field-type {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem !important;
+}
+
+.empty-message {
+    color: #718096;
+}
+
+.empty-message p {
+    font-size: 1rem;
+}
+
+.footer {
+    background-color: #2d3748;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    margin-top: auto;
+}
+
+.footer-content {
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 1rem;
+    }
+    
+    .dashboard-container {
+        padding: 1rem;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .form-field-table {
+        min-width: 800px;
+    }
+}
+</style>
+
+</body>
+</html>

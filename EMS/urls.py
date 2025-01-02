@@ -17,13 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from User_app import views
-from User_app.views import CombinedLoginView, HomeView, SignupView, SigninView, search_events, SignoutView, DashboardLoginView, DashboardHomeView, CreateEventView, EventFormManagerView, ManageEventView, UpdateEventView, DeleteEventView, DashboardLogoutView
+from User_app.views import CombinedLoginView, HomeView, SignupView, SigninView, search_events, SignoutView, DashboardLoginView, DashboardHomeView, CreateEventView, EventFormManagerView, ManageEventView, UpdateEventView, DeleteEventView, DashboardLogoutView, EventListView, EventFormFieldListView, EventRegistrationListView
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-        ### EventPro Links ###
+        ### EventPro Participant Website ###
     path('', CombinedLoginView.as_view(), name='login'),
     path('home/', HomeView.as_view(), name='home'),  
     path('signup/', SignupView.as_view(), name='signup'),
@@ -35,7 +35,7 @@ urlpatterns = [
     path('registration/<int:registration_id>/cancel/', views.cancel_registration, name='cancel_registration'),
     path('signout/', SignoutView.as_view(), name='signout'),
 
-        ### EventPro Dashboard Links ###
+        ### EventPro Dashboard ###
     path('Dashboard_Login/', DashboardLoginView.as_view(), name='Dashboard_Login'),
     path('Dashboard_Home/', DashboardHomeView.as_view(), name='Dashboard_Home'),
     path('Create_Event/', CreateEventView.as_view(), name='Create_Event'),
@@ -44,4 +44,9 @@ urlpatterns = [
     path('Update_Event/<int:pk>/', UpdateEventView.as_view(), name='Update_Event'),
     path('Delete_Event/<int:pk>/', DeleteEventView.as_view(), name='Delete_Event'),
     path('Dashboard_Logout/', DashboardLogoutView.as_view(), name='Dashboard_Logout'),
+
+        ### EventPro Databases ###
+    path('database/EventsTable/', EventListView.as_view(), name='event_database'),
+    path('database/Form-FieldsTable/', EventFormFieldListView.as_view(), name='form_field_database'),
+    path('database/RegistrationsTable/', EventRegistrationListView.as_view(), name='registration_database'),
 ]

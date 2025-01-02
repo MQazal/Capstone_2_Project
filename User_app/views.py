@@ -1,23 +1,22 @@
 from django.http import HttpResponse
+from django.views.generic.edit import FormView, CreateView, UpdateView
+from .forms import SignupForm, SigninForm, EventForm, DynamicEventRegistrationForm
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.views import View
 from django.views.generic import TemplateView, ListView
-from django.views.generic.edit import FormView, CreateView, UpdateView
 from django.urls import reverse_lazy
 from .models import Event, EventFormField, EventRegistration
-from .forms import SignupForm, SigninForm, EventForm, DynamicEventRegistrationForm
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
-### EventPro Website Classes ###
-
+### EventPro Classes (Participant Side) ###
 class SignupView(FormView):
-    template_name = "signup.html"
+    template_name = "Participant_Pages/signup.html"
     form_class = SignupForm
     success_url = reverse_lazy('signin')
 
@@ -42,7 +41,7 @@ class SignupView(FormView):
         return super().form_valid(form)
 
 class SigninView(FormView):
-    template_name = "signin.html"
+    template_name = "Participant_Pages/signin.html"
     form_class = SigninForm
     success_url = reverse_lazy('home')
 
@@ -70,7 +69,6 @@ class SigninView(FormView):
 
 class CombinedLoginView(View):
     template_name = "combined_login.html"
-
     def get(self, request):
         participant_form = SigninForm()
         return render(request, self.template_name, {
@@ -105,31 +103,71 @@ class CombinedLoginView(View):
                     pass
                 messages.error(request, "Invalid email or password!")
         return redirect('login')
+    
 
 class HomeView(ListView):
-    model = Event
-    template_name = 'home.html'
-    context_object_name = 'events'
+   model = Event 
+   template_name = 'Participant_Pages/home.html'
+   context_object_name = 'events'
 
-    def get_queryset(self):
-        return Event.objects.values('EventType').distinct()
+   def get_queryset(self):
+       return Event.objects.values('EventType').distinct().order_by('EventType')
+
+   def get_context_data(self, **kwargs):
+       context = super().get_context_data(**kwargs)
+       if self.request.user.is_authenticated:
+           context['fname'] = self.request.user.first_name
+
+       upcoming_events = Event.objects.filter(
+           EventDate__gte=datetime.now().date()
+       ).order_by('?')[:6]
+
+       # Calculate capacity percentage for each event
+       for event in upcoming_events:
+           event.registration_deadline = datetime.combine(
+               event.EventDate, 
+               event.EventTime
+           ) - timedelta(hours=24)
+           
+           # Calculate capacity percentage
+           if event.EventCapacity:
+               event.capacity_percentage = (event.current_participants / event.EventCapacity) * 100
+           else:
+               event.capacity_percentage = 0
+           
+       context['featured_events'] = upcoming_events
+       context['current_time'] = datetime.now()
+       return context
 
 def search_events(request):
-    event_type = request.GET.get('event_type')
-    events = None
-    if event_type:
-        events = Event.objects.filter(EventType=event_type)
-    
-    context = {
-        'events': events,
-        'searched_type': event_type,
-    }
-    return render(request, 'SearchResult.html', context)
+   event_type = request.GET.get('event_type')
+   events = None
+   
+   try:
+       if event_type:
+           events = Event.objects.filter(EventType=event_type)
+           if not events.exists():
+               messages.info(request, f"No events found for type: {event_type}")
+   except Exception as e:
+       messages.error(request, "Search error. Please try again.")
+       
+   context = {
+       'events': events,
+       'searched_type': event_type,
+       'fname': request.user.first_name if request.user.is_authenticated else None
+   }
+   
+   return render(request, 'Participant_Pages/SearchResult.html', context)
 
 @login_required
 def RegisterInEvent(request, event_id):
     event = get_object_or_404(Event, EventID=event_id)
     
+# Check if event registration form is configured
+    if not event.form_configured:
+        messages.error(request, "Registration is not yet available for this event.")
+        return redirect('home')
+
     # Check if event is full
     if event.EventCapacity and event.current_participants >= event.EventCapacity:
         messages.error(request, "Sorry, this event is already full!")
@@ -165,15 +203,12 @@ def RegisterInEvent(request, event_id):
                         payment_status=payment_status,
                         payment_method=payment_method
                     )
-                    
-                    # Removed the manual participant count update since it's handled in the model
-                
                 return redirect('registration_confirmation', registration_id=registration.id)
                 
             except Exception as e:
                 print(f"Registration error: {str(e)}")  # For debugging
                 messages.error(request, "An error occurred during registration. Please try again.")
-                return render(request, 'RegisterInEvent.html', {
+                return render(request, 'Participant_Pages/RegisterInEvent.html', {
                     'event': event,
                     'form': form,
                     'remaining_spots': event.EventCapacity - event.current_participants if event.EventCapacity else None
@@ -191,7 +226,7 @@ def RegisterInEvent(request, event_id):
     # Add capacity information to template context
     remaining_spots = event.EventCapacity - event.current_participants if event.EventCapacity else None
     
-    return render(request, 'RegisterInEvent.html', {
+    return render(request, 'Participant_Pages/RegisterInEvent.html', {
         'event': event,
         'form': form,
         'remaining_spots': remaining_spots
@@ -208,7 +243,7 @@ def registration_confirmation(request, registration_id):
         'user': request.user,
         'date': datetime.now().strftime('%B %d, %Y')
     }
-    return render(request, 'registration_confirmation.html', context)
+    return render(request, 'Participant_Pages/registration_confirmation.html', context)
 
 @login_required
 def EventPro_User(request):
@@ -224,7 +259,7 @@ def EventPro_User(request):
             'has_registrations': user_registrations.exists(),
             'fname': request.user.first_name
         }
-        return render(request, 'MyAccount.html', context)
+        return render(request, 'Participant_Pages/MyAccount.html', context)
     except Exception as e:
         print(f"Error in EventPro_User view: {str(e)}")
         messages.error(request, "An error occurred while loading your account.")
@@ -238,10 +273,10 @@ def cancel_registration(request, registration_id):
         registration.delete()
         event.remove_participant()
         messages.success(request, "Registration cancelled successfully!")
-        return redirect('user_account')  # Changed from 'MyAccount' to 'user_account'
+        return redirect('user_account')
     except EventRegistration.DoesNotExist:
         messages.error(request, "Registration not found!")
-        return redirect('user_account')  # Changed from 'MyAccount' to 'user_account'
+        return redirect('user_account')
 
 class SignoutView(View):
     def get(self, request, *args, **kwargs):
@@ -259,7 +294,7 @@ class SignoutView(View):
     ### EventPro Dashboard Classes ###
 class DashboardLoginView(View):
     def get(self, request):
-        return render(request, "Dashboard_Login.html")
+        return render(request, "Dashboard_Pages/Dashboard_Login.html")
 
     def post(self, request):
         username = request.POST['username']
@@ -275,7 +310,7 @@ class DashboardLoginView(View):
             return redirect('Dashboard_Login')
 
 class DashboardHomeView(TemplateView):
-    template_name = "Dashboard_Home.html"
+    template_name = "Dashboard_Pages/Dashboard_Home.html"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['all'] = Event.objects.all()
@@ -284,14 +319,14 @@ class DashboardHomeView(TemplateView):
 class CreateEventView(CreateView):
     model = Event
     form_class = EventForm
-    template_name = "CreateEvent.html"
+    template_name = "Dashboard_Pages/CreateEvent.html"
     success_url = reverse_lazy('Dashboard_Home')
 
     def form_valid(self, form):
         # First save the form to create the event object
         event = form.save(commit=False)
         
-        # Handle capacity - fix the field name to match the model
+        # Handle capacity
         capacity_value = form.cleaned_data.get('EventCapacity')
         if capacity_value:
             event.EventCapacity = capacity_value
@@ -300,10 +335,7 @@ class CreateEventView(CreateView):
             
         # Set initial participants count
         event.current_participants = 0
-        
-        event.form_configured = False  # Changed this line - start as not configured
-        
-        # Save the event
+        event.form_configured = False
         event.save()
         
         # Add basic/common fields automatically
@@ -323,13 +355,10 @@ class CreateEventView(CreateView):
                 'field_type': field_type,
                 'is_required': True
             }
-            
-            # Add choices if provided (for select fields)
+
             if len(field_info) > 2:
                 field_data['choices'] = field_info[2]
-                
             EventFormField.objects.create(**field_data)
-        
         # Add payment method field for paid events
         if event.EventCost.lower() != 'free':
             EventFormField.objects.create(
@@ -339,13 +368,11 @@ class CreateEventView(CreateView):
                 is_required=True,
                 choices='Credit Card,Debit Card,Cash'
             )
-        
         messages.success(self.request, "Event has been created successfully!")
         return super().form_valid(form)
 
 class EventFormManagerView(View):
-    template_name = "form_manager.html"
-
+    template_name = "Dashboard_Pages/form_manager.html"
     def get(self, request, event_id):
         event = get_object_or_404(Event, EventID=event_id)
         form_fields = event.form_fields.all()
@@ -353,28 +380,14 @@ class EventFormManagerView(View):
             'event': event,
             'form_fields': form_fields
         })
-
-class EventFormManagerView(View):
-    template_name = "form_manager.html"
-
-    def get(self, request, event_id):
-        event = get_object_or_404(Event, EventID=event_id)
-        form_fields = event.form_fields.all()
-        return render(request, self.template_name, {
-            'event': event,
-            'form_fields': form_fields
-        })
-
     def post(self, request, event_id):
         event = get_object_or_404(Event, EventID=event_id)
         action = request.POST.get('action')
-        
         if action == 'add_field':
             field_name = request.POST.get('field_name')
             field_type = request.POST.get('field_type')
             is_required = request.POST.get('is_required') == 'on'
             choices = request.POST.get('choices') if field_type == 'select' else None
-            
             EventFormField.objects.create(
                 event=event,
                 field_name=field_name,
@@ -383,31 +396,27 @@ class EventFormManagerView(View):
                 choices=choices
             )
             messages.success(request, "Field added successfully!")
-            
         elif action == 'delete_field':
             field_id = request.POST.get('field_id')
             EventFormField.objects.filter(id=field_id, event=event).delete()
             messages.success(request, "Field removed successfully!")
-            
         elif action == 'save_form':
             event.form_configured = True
             event.save()
             messages.success(request, "Form configuration saved!")
             return redirect('Dashboard_Home')
-            
         return redirect('form_manager', event_id=event_id)
 
 class ManageEventView(ListView):
         model = Event
-        template_name = "ManageEvent.html"
+        template_name = "Dashboard_Pages/ManageEvent.html"
         context_object_name = 'all'
 
 class UpdateEventView(UpdateView):
     model = Event
     form_class = EventForm
-    template_name = "UpdateEvent.html"
+    template_name = "Dashboard_Pages/UpdateEvent.html"
     success_url = reverse_lazy('Dashboard_Home')
-
     def form_valid(self, form):
         messages.success(self.request, "Event updated successfully!")
         return super().form_valid(form)
@@ -424,3 +433,32 @@ class DashboardLogoutView(View):
         logout(request)
         messages.success(request, "Logged out successfully!")
         return redirect('Dashboard_Login')
+    
+
+    ### EventPro Database Pages ###
+class EventListView(ListView):
+    model = Event
+    template_name = 'Database_Pages/event_database.html'
+    context_object_name = 'events'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Events Database'
+        return context
+
+class EventFormFieldListView(ListView):
+    model = EventFormField
+    template_name = 'Database_Pages/form_field_database.html'
+    context_object_name = 'form_fields'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Event Form Fields Database'
+        return context
+
+class EventRegistrationListView(ListView):
+    model = EventRegistration
+    template_name = 'Database_Pages/registration_database.html'
+    context_object_name = 'registrations'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Event Registrations Database'
+        return context

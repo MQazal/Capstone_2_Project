@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<div class="container">
+    <h1 class="main-title">
+        {% if searched_type %}
+            {{ searched_type }} Events
+        {% else %}
+            Search Events
+        {% endif %}
+    </h1>
+    
+    {% if events %}
+        <div class="event-grid">
+            {% for event in events %}
+            <div class="event-card">
+                <div class="card-header">
+                    <span class="event-id">#{{ event.EventID }}</span>
+                    <h2 class="event-title">{{ event.EventTitle }}</h2>
+                </div>
+
+                <div class="event-content">
+                    <div class="detail-group">
+                        <div class="detail-item">
+                            <i class="fas fa-align-left text-blue-500"></i>
+                            <div class="detail-info">
+                                <span class="label">Description:</span>
+                                <span class="value">{{ event.EventDescription }}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <i class="fas fa-calendar text-blue-500"></i>
+                            <div class="detail-info">
+                                <span class="label">Date</span>
+                                <span class="value">{{ event.EventDate }}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <i class="fas fa-clock text-blue-500"></i>
+                            <div class="detail-info">
+                                <span class="label">Time:</span>
+                                <span class="value">{{ event.EventTime }}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <i class="fas fa-ticket text-blue-500"></i>
+                            <div class="detail-info">
+                                <span class="label">Cost:</span>
+                                <span class="value">{{ event.EventCost }}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <i class="fas fa-users text-blue-500"></i>
+                            <div class="detail-info">
+                                <span class="label">Capacity:</span>
+                                <span class="value">{% if event.EventCapacity %}{{ event.EventCapacity }}{% else %}Unlimited{% endif %}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <i class="fas fa-location-dot text-blue-500"></i>
+                            <div class="detail-info">
+                                <span class="label">Location:</span>
+                                {% if event.EventLocation %}
+                                    <a href="{{ event.EventLocation }}" target="_blank" class="location-link">
+                                        View on Maps <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                {% else %}
+                                    <span class="value">No location specified</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <a href="{% url 'register_event' event.EventID %}" class="btn btn-register">
+                        <i class="fas fa-user-plus"></i> Register Now
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-results">
+            <i class="fas fa-search"></i>
+            <p>{% if searched_type %}No events found for {{ searched_type }}{% else %}Please select an event type to search{% endif %}</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+:root {
+    --primary: #4a90e2;
+    --success: #2ecc71;
+    --background: #f5f7fa;
+    --text: #2c3e50;
+    --text-light: #7f8c8d;
+    --radius: 12px;
+    --shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--background);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.main-title {
+    font-size: 2rem;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 2rem;
+    font-weight: 600;
+}
+
+.event-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.event-card {
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.card-header {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.event-id {
+    background: #e3f2fd;
+    color: var(--primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.event-title {
+    margin-top: 0.5rem;
+    font-size: 1.5rem;
+    color: var(--text);
+}
+
+.event-content {
+    padding: 1rem;
+}
+
+.detail-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+    gap: 1rem;
+}
+
+.detail-item i {
+    color: var(--primary);
+    font-size: 1.25rem;
+    width: 24px;
+    text-align: center;
+}
+
+.detail-info {
+    flex: 1;
+}
+
+.label {
+    display: block;
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.value {
+    color: var(--text);
+    font-size: 1rem;
+}
+
+.location-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    border: 1px solid #e0e0e0;
+}
+
+.location-link:hover {
+    background-color: #e9ecef;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-actions {
+    padding: 1rem;
+    text-align: center;
+    border-top: 1px solid #eee;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.btn-register {
+    background: var(--success);
+    color: white;
+    min-width: 200px;
+}
+
+.btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.no-results {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.no-results i {
+    font-size: 2rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+}
+
+.no-results p {
+    color: var(--text);
+    font-size: 1.25rem;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .event-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .main-title {
+        font-size: 1.5rem;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+</style>
+
+{% endblock %}

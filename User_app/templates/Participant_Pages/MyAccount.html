@@ -39,14 +39,6 @@
     </nav>
 
     <main class="main-content">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
         <h1 class="section-title">My Registered Events</h1>
 
         {% if has_registrations %}
@@ -136,8 +128,15 @@
     </main>
 
     <footer>
-        <p>© 2024 EventPro. All rights reserved.</p>
+        <p>© 2025 EventPro. All rights reserved.</p>
     </footer>
+
+    <div class="background-pattern"></div>
+    {% for message in messages %}
+    <div id="alertMessage" class="alert-message" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
 
 <style>
 * {
@@ -641,6 +640,20 @@ body.dark-mode .info-row:first-child .info-value {
 color: #ecf0f1;
 }
 
+.alert-message {
+position: fixed;
+top: 20px;
+left: 20px;
+padding: 15px 25px;
+border-radius: 5px;
+background: #ff3333;
+color: white;
+font-size: 17px;
+animation: slideIn 0.5s ease forwards;
+box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+z-index: 1000;
+}
+
 @media (max-width: 768px) {
 .nav-content {
 flex-direction: column;
@@ -663,13 +676,21 @@ margin: 5% auto;
 width: 95%;
 }
 }
+
+@keyframes slideIn {
+from {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+to {
+    transform: translateX(0);
+    opacity: 1;
+}
+}
 </style>
         
 
 <script>
-    // Console log for debugging
-    console.log('Script initializing...');
-    
     // Wait for DOM to be loaded before initializing functionality
     document.addEventListener('DOMContentLoaded', function() {
         console.log('DOM loaded');
@@ -807,20 +828,18 @@ width: 95%;
             console.error('Error toggling profile:', error);
         }
     }
-    
-    // Alert functionality
-    function initializeAlerts() {
-        try {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                setTimeout(() => {
-                    alert.style.display = 'none';
-                }, 5000);
-            });
-        } catch (error) {
-            console.error('Error initializing alerts:', error);
+
+    function closeAlert() {
+        const alert = document.getElementById('alertMessage');
+        if (alert) {
+            alert.style.animation = 'slideOut 0.5s ease forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 500);
         }
     }
+    // Auto-dismiss after 5 seconds
+    setTimeout(closeAlert, 5000);
     
     // Registration cancellation confirmation
     function confirmCancellation(event) {

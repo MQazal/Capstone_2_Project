@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registrations Database</title>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">EventPro</div>
+    </header>
+
+    <div class="dashboard-container">
+        <h2 class="page-title">Registration Database</h2>
+    
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Registrations</div>
+                <div class="stat-value">{{ registrations|length }}</div>
+            </div>
+        </div>
+     
+        <div class="table-container">
+            <table class="registration-table">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>User</th>
+                        <th>Created At</th>
+                        <th>Payment Method</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registration in registrations %}
+                    <tr>
+                        <td>{{ registration.event.EventTitle }}</td>
+                        <td>{{ registration.user.username }}</td>
+                        <td>{{ registration.created_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ registration.payment_method|default:"-" }}</td>
+                        <td>
+                            <span class="badge status-{{ registration.payment_status }}">
+                                {{ registration.payment_status }}
+                            </span>
+                        </td>
+                        <td>
+                            <details>
+                                <summary class="view-data">View Data</summary>
+                                <pre class="data-preview">{{ registration.registration_data|pprint }}</pre>
+                            </details>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="empty-message">No registrations found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+     </div>
+
+    <footer class="footer">
+        <div class="footer-content">© 2025 EventPro. All rights reserved.</div>
+    </footer>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.header {
+    background: white;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.logo {
+    color: #2d3748;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.dashboard-container {
+    flex: 1;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 2rem;
+}
+
+.stats-grid {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+   gap: 1rem;
+   margin-bottom: 2rem;
+}
+
+.stat-card {
+   background: white;
+   border-radius: 0.5rem;
+   padding: 0.75rem;
+   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+   text-align: center;
+   width: 120px;
+   margin: 0 auto;
+}
+
+.stat-label {
+   color: #718096;
+   font-size: 0.7rem;
+   font-weight: 500;
+}
+
+.stat-value {
+   color: #2d3748;
+   font-size: 1.25rem;
+   font-weight: 600;
+   margin-top: 0.25rem;
+}
+
+.table-container {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.registration-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.registration-table th {
+    background: #f7fafc;
+    padding: 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #4a5568;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.registration-table td {
+    padding: 1rem;
+    color: #4a5568;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.registration-table tr:hover {
+   background: #f7fafc;
+   transition: background-color 0.2s;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-completed {
+    background: #f0fff4;
+    color: #38a169;
+}
+
+.status-pending {
+    background: #fffbeb;
+    color: #d97706;
+}
+
+.status-failed {
+    background: #fff5f5;
+    color: #e53e3e;
+}
+
+.status-not_required {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.data-details {
+    position: relative;
+}
+
+.data-summary {
+    color: #3182ce;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: inline-block;
+}
+
+.data-content {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
+    min-width: 300px;
+    z-index: 10;
+}
+
+.data-row {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.data-row:last-child {
+    border-bottom: none;
+}
+
+.data-label {
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 0.25rem;
+}
+
+.data-value {
+    color: #1a202c;
+}
+
+.data-preview {
+   margin-top: 0.5rem;
+   font-size: 0.75rem;
+   background: #f8fafc;
+   padding: 0.5rem;
+   border-radius: 0.25rem;
+}
+
+.footer {
+    background-color: #2d3748;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    margin-top: auto;
+}
+
+.footer-content {
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 1rem;
+    }
+    
+    .dashboard-container {
+        padding: 1rem;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .registration-table {
+        min-width: 800px;
+    }
+}
+</style>
+
+</body>
+</html>

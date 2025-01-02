@@ -1,7 +1,8 @@
 from django.contrib import admin
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from .models import Event, EventFormField, EventRegistration
 #import json
-
 
 @admin.register(EventRegistration)
 class EventRegistrationAdmin(admin.ModelAdmin):
@@ -30,16 +31,13 @@ class EventRegistrationAdmin(admin.ModelAdmin):
             return "\n".join(formatted_lines)
         except Exception:
             return "Error displaying data"
-    
     get_formatted_data.short_description = 'Registration Data'
-
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
     list_display = ('EventTitle', 'EventType', 'EventDate', 'EventCost', 'EventLocation')
     search_fields = ('EventTitle', 'EventType')
     list_filter = ('EventType', 'EventDate', 'form_configured')
-
 
 @admin.register(EventFormField)
 class EventFormFieldAdmin(admin.ModelAdmin):

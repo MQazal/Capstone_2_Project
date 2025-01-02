@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Home</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <!-- Header Section -->
+        <header class="main-header">
+            <div class="logo">EventPro</div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="content-wrapper">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <h2>EMS Dashboard</h2>
+                
+                <!-- Controls Bar -->
+                <div class="controls-bar">
+                    <!-- Theme & Language -->
+                    <div class="controls-group">
+                        <button class="control-btn" id="themeToggle">
+                            <i class="fas fa-moon dark-icon"></i>
+                            <i class="fas fa-sun light-icon" style="display:none"></i>
+                            Dark Mode
+                        </button>
+                        
+                        <button class="control-btn" id="langToggle">
+                            <i class="fas fa-globe"></i>
+                            عربي / EN
+                        </button>
+                    </div>
+             
+                    <!-- Main Actions -->
+                    <div class="main-actions">
+                        <a href="{% url 'Create_Event' %}" class="action-btn create-btn">
+                            <i class="fas fa-plus"></i> Create Event
+                        </a>
+                        <a href="{% url 'Manage_Event' %}" class="action-btn manage-btn">
+                            <i class="fas fa-cog"></i> Manage Events
+                        </a>
+                    </div>
+                </div>
+             </div>
+             
+            <!-- Events Section -->
+            <section class="events-section">
+                <h2 class="section-title">Available Events</h2>
+                <div class="events-grid">
+                    {% for item in all %}
+                    <div class="event-card">
+                        <div class="event-header">
+                            <span class="event-id">#{{ item.EventID }}</span>
+                            <span class="event-type">{{ item.EventType }}</span>
+                        </div>
+                        
+                        <div class="event-body">
+                            <h3 class="event-title">{{ item.EventTitle }}</h3>
+                            <div class="event-details">
+                                <div class="detail-row">
+                                    <i class="fas fa-align-left"></i>
+                                    <p>{{ item.EventDescription }}</p>
+                                </div>
+                                <div class="detail-row">
+                                    <i class="fas fa-calendar"></i>
+                                    <p>{{ item.EventDate }}</p>
+                                </div>
+                                <div class="detail-row">
+                                    <i class="fas fa-clock"></i>
+                                    <p>{{ item.EventTime }}</p>
+                                </div>
+                                <div class="detail-row">
+                                    <i class="fas fa-ticket"></i>
+                                    <p>{{ item.EventCost }}</p>
+                                </div>
+                                <div class="detail-row">
+                                    <i class="fas fa-location-dot"></i>
+                                    {% if item.EventLocation %}
+                                        <a href="{{ item.EventLocation }}" target="_blank" class="location-link">
+                                            View on Maps <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    {% else %}
+                                        <p>No location specified</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="capacity-status">
+                                <div class="progress-bar">
+                                    <div class="progress"></div>
+                                </div>
+                                <span class="spots-count">
+                                    {{ item.current_participants|default:0 }} / {{ item.EventCapacity }} spots filled
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="card-actions">
+                            <a href="{% url 'form_manager' item.EventID %}" class="form-btn">
+                                {% if not item.form_configured %}
+                                    <i class="fas fa-plus-circle"></i> Setup Registration Form
+                                {% else %}
+                                    <i class="fas fa-edit"></i> Edit Registration Form
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+
+        <!-- Logout Button -->
+        <div class="logout-container">
+            <a href="{% url 'Dashboard_Logout' %}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2025 EventPro. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <div class="background-pattern"></div>
+    {% for message in messages %}
+    <div id="alertMessage" class="alert-message" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+
+<style>
+/* Base Styles */
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #2ecc71;
+    --danger-color: #e74c3c;
+    --text-dark: #2c3e50;
+    --text-light: #7f8c8d;
+    --background-light: #f8f9fa;
+    --card-gradient: linear-gradient(135deg, #fff, #f8f9fa);
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --footer-bg: #1f2937;
+    --transition-default: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* Layout Components */
+.main-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-header {
+    background: white;
+    padding: 1rem 2rem;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-default);
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-dark);
+}
+
+.content-wrapper {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: var(--transition-default);
+}
+
+/* Controls Bar */
+.controls-bar {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.controls-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.control-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-sm);
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: var(--transition-default);
+}
+
+.control-btn:hover {
+    background: var(--background-light);
+    transform: translateY(-1px);
+}
+
+/* Action Buttons */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition-default);
+}
+
+.create-btn {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.manage-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Events Grid */
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.event-card {
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: var(--transition-default);
+}
+
+.event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Card Components */
+.event-header {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    background: var(--background-light);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.event-id {
+    background: #e3f2fd;
+    color: var(--primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.event-type {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+}
+
+.event-body {
+    padding: 1.5rem;
+}
+
+.event-title {
+    margin-bottom: 1rem;
+    color: var(--text-dark);
+    font-size: 1.25rem;
+}
+
+.detail-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    align-items: flex-start;
+}
+
+.detail-row i {
+    color: var(--primary-color);
+    width: 20px;
+    margin-top: 0.25rem;
+}
+
+/* Location Link */
+.location-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--background-light);
+    color: var(--primary-color);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    transition: var(--transition-default);
+    border: 1px solid #e0e0e0;
+}
+
+.location-link:hover {
+    background-color: #e9ecef;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Capacity Status */
+.capacity-status {
+    margin-top: 1.5rem;
+}
+
+.progress-bar {
+    background: var(--background-light);
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress {
+    background: var(--primary-color);
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.spots-count {
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+/* Card Actions */
+.card-actions {
+    padding: 1rem;
+    background: var(--background-light);
+    border-top: 1px solid rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+.form-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--secondary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: var(--transition-default);
+}
+
+/* Logout Section */
+.logout-container {
+    padding: 1rem 2rem;
+    text-align: right;
+    background: white;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+}
+
+.logout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--danger-color);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: var(--transition-default);
+}
+
+/* Footer */
+.main-footer {
+    background: var(--footer-bg);
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    margin-top: auto;
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    --background-light: #1a202c;
+    --text-dark: #f7fafc;
+    --text-light: #e2e8f0;
+    --card-gradient: linear-gradient(135deg, #2d3748, #1a202c);
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.2);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .main-header,
+body.dark-mode .dashboard-header,
+body.dark-mode .event-card,
+body.dark-mode .control-btn,
+body.dark-mode .logout-container {
+    background: #2d3748;
+    border-color: #4a5568;
+}
+
+body.dark-mode .event-header {
+    background: #4a5568;
+    border-color: #2d3748;
+}
+
+body.dark-mode .event-type {
+    background: #4299e1;
+}
+
+body.dark-mode .location-link {
+    background: #4a5568;
+    border-color: #718096;
+}
+
+body.dark-mode .progress-bar {
+    background: #4a5568;
+}
+
+body.dark-mode .progress {
+    background: #4299e1;
+}
+
+body.dark-mode .form-btn {
+    background: #38a169;
+}
+
+body.dark-mode .card-actions {
+    background: #2d3748;
+    border-color: #4a5568;
+}
+
+/* RTL Support */
+[dir="rtl"] .controls-bar,
+[dir="rtl"] .dashboard-header,
+[dir="rtl"] .event-header,
+[dir="rtl"] .detail-row,
+[dir="rtl"] .location-link {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .event-card {
+    text-align: right;
+}
+
+[dir="rtl"] .logout-container {
+    text-align: left;
+}
+
+[dir="rtl"] .fa-external-link-alt {
+    transform: scaleX(-1);
+}
+
+.alert-message {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 15px 25px;
+    border-radius: 5px;
+    background: #ff3333;
+    color: white;
+    font-size: 17px;
+    animation: slideIn 0.5s ease forwards;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+.content-wrapper {
+    padding: 1rem;
+}
+
+.dashboard-header {
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.controls-bar {
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+}
+
+.controls-group {
+    width: 100%;
+    justify-content: center;
+}
+
+.main-actions {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+.event-card {
+    margin: 0 1rem;
+}
+
+.logout-btn {
+    width: 100%;
+    justify-content: center;
+}
+}
+
+@keyframes slideIn {
+from {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+to {
+    transform: translateX(0);
+    opacity: 1;
+}
+}
+</style>
+
+
+<script>
+// Add Arabic labels for dynamic content
+const contentLabels = {
+description: {
+    en: "Description",
+    ar: "الوصف"
+},
+date: {
+    en: "Date",
+    ar: "التاريخ" 
+},
+time: {
+    en: "Time", 
+    ar: "الوقت"
+},
+cost: {
+    en: "Cost",
+    ar: "التكلفة"
+},
+location: {
+    en: "Location",
+    ar: "الموقع"
+}
+};
+
+function updateDynamicContent(isArabic) {
+// Update content labels
+document.querySelectorAll('.detail-row').forEach(row => {
+    const type = row.dataset.type;
+    if (type && contentLabels[type]) {
+        row.dataset.label = isArabic ? contentLabels[type].ar : contentLabels[type].en;
+    }
+});
+
+// Update dynamic text content
+updateLanguageContent();
+}
+
+// Update language toggle to call new function
+function setLanguage(isArabic) {
+document.dir = isArabic ? 'rtl' : 'ltr';
+document.documentElement.lang = isArabic ? 'ar' : 'en';
+updateDynamicContent(isArabic);
+langBtn.querySelector('span').textContent = isArabic ? 'EN / عربي' : 'عربي / EN';
+}
+
+function closeAlert() {
+    const alert = document.getElementById('alertMessage');
+    if (alert) {
+        alert.style.animation = 'slideOut 0.5s ease forwards';
+        setTimeout(() => {
+            alert.remove();
+        }, 500);
+    }
+}
+// Auto-dismiss after 5 seconds
+setTimeout(closeAlert, 5000);
+</script>
+
+</body>
+</html>
